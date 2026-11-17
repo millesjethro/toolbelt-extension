@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>Toolbelt</title>
+<style>
+  :root{
+    --bg:        #1b1d21;
+    --panel:     #232629;
+    --panel-2:   #2b2e33;
+    --line:      #35383d;
+    --ink:       #eceeef;
+    --muted:     #9a9fa6;
+    --accent:    #ffb020;
+    --accent-ink:#1b1d21;
+    --good:      #4fd1a5;
+    --bad:       #ef6a5f;
+  }
+  * { box-sizing: border-box; }
+  html, body{
+    margin:0;
+    width:360px;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  }
+  code, .mono{ font-family: "SF Mono", ui-monospace, Menlo, Consolas, monospace; }
+
+  /* ---- Tab rail ---- */
+  .tabs{
+    display:flex;
+    background: var(--panel);
+    border-bottom: 1px solid var(--line);
+  }
+  .tab{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:3px;
+    padding:11px 2px 9px;
+    background:none;
+    border:none;
+    color: var(--muted);
+    font-size:10.5px;
+    font-weight:600;
+    letter-spacing:.1px;
+    cursor:pointer;
+    position:relative;
+  }
+  .tab .glyph{ font-size:16px; line-height:1; }
+  .tab.active{ color: var(--ink); }
+  .tab.active::after{
+    content:"";
+    position:absolute;
+    left:14px; right:14px; bottom:0;
+    height:2px;
+    background: var(--accent);
+    border-radius:2px 2px 0 0;
+  }
+
+  main{ padding:16px 18px 14px; min-height: 300px; }
+  .pane{ display:none; }
+  .pane.active{ display:block; }
+
+  h2{
+    margin:0 0 3px;
+    font-size:14.5px;
+    font-weight:700;
+  }
+  .lede{
+    margin:0 0 14px;
+    font-size:12px;
+    color: var(--muted);
+    line-height:1.5;
+  }
+
+  label.field-label{
+    display:block;
+    font-size:11px;
+    font-weight:700;
+    text-transform:uppercase;
+    letter-spacing:.5px;
+    color: var(--muted);
+    margin-bottom:6px;
+  }
+
+  select, input[type="text"]{
+    width:100%;
+    background: var(--panel-2);
+    border:1px solid var(--line);
+    color: var(--ink);
+    padding:9px 10px;
+    border-radius:8px;
+    font-size:13px;
+    outline:none;
+  }
+  select:focus, input[type="text"]:focus{ border-color: var(--accent); }
+
+  button{ font-family: inherit; }
+  .btn{
+    width:100%;
+    border:none;
+    padding:11px 14px;
+    border-radius:9px;
+    font-size:13.5px;
+    font-weight:700;
+    cursor:pointer;
+    transition: transform .1s ease, opacity .15s ease, background .15s ease;
+  }
+  .btn:active{ transform: scale(0.98); }
+  .btn:disabled{ opacity:.5; cursor:default; transform:none; }
+  .btn-primary{ background: var(--accent); color: var(--accent-ink); }
+  .btn-primary:hover:not(:disabled){ background:#ffc04d; }
+  .btn-ghost{
+    background: var(--panel-2);
+    color: var(--ink);
+    border:1px solid var(--line);
+  }
+  .btn-ghost:hover:not(:disabled){ border-color:#4a4e55; }
+  .btn-danger-active{ background: var(--bad); color:#fff; }
+  .btn-on{ background: var(--good); color: var(--accent-ink); border-color: var(--good); }
+  .btn-row{ display:flex; flex-direction:column; gap:8px; margin-top:10px; }
+
+  .status{
+    margin-top:10px;
+    font-size:11.5px;
+    color: var(--muted);
+    min-height:14px;
+    line-height:1.5;
+  }
+  .status.error{ color: var(--bad); }
+  .status.ok{ color: var(--good); }
+
+  .divider{
+    border:none;
+    border-top:1px solid var(--line);
+    margin:16px 0;
+  }
+
+  /* ---- Items pane ---- */
+  .total-card{
+    margin-top:14px;
+    padding:14px 16px;
+    border-radius:10px;
+    background: var(--panel-2);
+    border:1px solid var(--line);
+    display:none;
+  }
+  .total-card.show{ display:block; }
+  .total-card .label{
+    font-size:10.5px;
+    text-transform:uppercase;
+    letter-spacing:.6px;
+    color: var(--muted);
+    font-weight:700;
+  }
+  .total-card .value{
+    font-size:26px;
+    font-weight:800;
+    color: var(--accent);
+    margin-top:2px;
+  }
+  .total-card .sub{ margin-top:2px; font-size:11px; color: var(--muted); }
+
+  .list{
+    margin-top:12px;
+    max-height:190px;
+    overflow-y:auto;
+    border-radius:8px;
+    border:1px solid var(--line);
+    display:none;
+  }
+  .list.show{ display:block; }
+  .row{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:10px;
+    padding:8px 11px;
+    border-bottom:1px solid var(--line);
+    font-size:12px;
+  }
+  .row:last-child{ border-bottom:none; }
+  .row .name{ overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .row .count{
+    flex:0 0 auto;
+    background: var(--bg);
+    color: var(--accent);
+    font-weight:700;
+    padding:2px 8px;
+    border-radius:999px;
+  }
+  .empty{
+    margin-top:12px;
+    font-size:12px;
+    color: var(--muted);
+    text-align:center;
+    padding:8px 4px;
+    display:none;
+  }
+  .empty.show{ display:block; }
+
+  footer{
+    padding:9px 18px 13px;
+    font-size:10px;
+    color:#5c6066;
+    text-align:center;
+    border-top:1px solid var(--line);
+  }
+button:focus-visible, input:focus-visible { outline:2px solid var(--accent); outline-offset:2px; }
+</style>
+<link rel="stylesheet" href="link-popup.css">
+</head>
+<body>
+
+  <nav class="tabs" id="tabs">
+    <button class="tab active" data-pane="translate">
+      <span class="glyph">A⇄文</span>
+      <span>Translate</span>
+    </button>
+    <button class="tab" data-pane="delete">
+      <span class="glyph mono">✕</span>
+      <span>Delete</span>
+    </button>
+    <button class="tab" data-pane="items">
+      <span class="glyph mono">#</span>
+      <span>Items</span>
+    </button>
+    <button class="tab" data-pane="source">
+      <span class="glyph mono">&lt;/&gt;</span>
+      <span>Source</span>
+    </button>
+    <button class="tab" data-pane="width">
+      <span class="glyph mono">↔</span>
+      <span>Width</span>
+    </button>
+  <button class="tab" data-pane="links"><span class="glyph">↗</span><span>Links</span></button></nav>
+
+  <main>
+
+    <!-- ================= TRANSLATE ================= -->
+    <section class="pane active" id="pane-translate">
+      <h2>Translate</h2>
+      <p class="lede">Pick a language, then translate the whole page in one go, click elements to translate them, or click text to edit it by hand.</p>
+
+      <label class="field-label" for="lang">Target language</label>
+      <select id="lang"></select>
+
+      <div class="btn-row">
+        <button id="translatePageBtn" class="btn btn-primary">TRANSLATE PAGE</button>
+        <button id="translateSingleBtn" class="btn btn-ghost">SINGLE TRANSLATE</button>
+        <button id="editBtn" class="btn btn-ghost">EDIT</button>
+      </div>
+      <div id="translateStatus" class="status"></div>
+    </section>
+
+    <!-- ================= DELETE ================= -->
+    <section class="pane" id="pane-delete">
+      <h2>Delete</h2>
+      <p class="lede">Turn on Delete, then click elements on the page to remove them — one at a time, or every matching element at once. Deleting keeps working after you close this popup; reopen it to switch modes, undo, or stop.</p>
+
+      <div class="btn-row">
+        <button id="deleteSingleBtn" class="btn btn-primary">Single delete</button>
+        <button id="deleteGroupBtn" class="btn btn-primary">Group delete</button>
+      </div>
+      <div class="btn-row">
+        <button id="undoDeleteBtn" class="btn btn-ghost">Undo last delete</button>
+        <button id="stopDeleteBtn" class="btn btn-ghost">Stop</button>
+      </div>
+      <div id="deleteStatus" class="status"></div>
+      <hr class="divider" />
+      <p class="lede" style="margin-bottom:0;">Shortcut: <span class="mono">Ctrl+Shift+D</span> toggles Single Delete from any tab — no need to open this popup. Editable at <span class="mono">chrome://extensions/shortcuts</span>.</p>
+    </section>
+
+    <!-- ================= ITEMS ================= -->
+    <section class="pane" id="pane-items">
+      <h2>Item Counter</h2>
+      <p class="lede" id="itemsSubtitle">Count Pinterest Pins or Facebook photos, Reels and posts on this page.</p>
+
+      <div class="btn-row" style="margin-top:0;">
+        <button id="scanBtn" class="btn btn-primary">Scan this page</button>
+      </div>
+
+      <hr class="divider" />
+      <label class="field-label" for="maxPostsInput">Max posts to scan</label>
+      <div style="display:flex; gap:8px;">
+        <input type="text" id="maxPostsInput" inputmode="numeric" value="300" style="width:90px; flex:0 0 auto;" />
+        <button id="scanPostsBtn" class="btn btn-ghost" style="flex:1;">Count Facebook posts</button>
+      </div>
+
+      <div id="itemsStatus" class="status"></div>
+
+      <div id="totalCard" class="total-card">
+        <div id="totalLabel" class="label">Total Pins</div>
+        <div id="totalValue" class="value">0</div>
+        <div id="totalSub" class="sub"></div>
+      </div>
+
+      <div id="itemsList" class="list"></div>
+      <div id="itemsEmpty" class="empty">No matches found on this page.</div>
+    </section>
+
+    <!-- ================= SOURCE ================= -->
+    <section class="pane" id="pane-source">
+      <h2>Page Source</h2>
+      <p class="lede">Grab the current tab's HTML source, either onto your clipboard or as a downloaded .txt file. You'll get a warning if the source mentions "Philippines" or ".ph".</p>
+
+      <div class="btn-row">
+        <button id="copySourceBtn" class="btn btn-primary">Copy source to clipboard</button>
+        <button id="saveSourceBtn" class="btn btn-ghost">Save source as .txt</button>
+      </div>
+      <div id="sourceStatus" class="status"></div>
+      <hr class="divider" />
+      <p class="lede" style="margin-bottom:0;">Shortcuts: <span class="mono">Ctrl+Shift+Z</span> to copy, <span class="mono">Ctrl+Shift+Q</span> to save — work from any tab. All shortcuts (including Delete and Scan) are editable at <span class="mono">chrome://extensions/shortcuts</span>.</p>
+    </section>
+
+    <!-- ================= WIDTH ================= -->
+    <section class="pane" id="pane-width">
+      <h2>Page Width</h2>
+      <p class="lede">Caps the page to a centered column at whatever width you set — handy on sites with an uncomfortably wide layout. Applies to the active tab only, until you reload the page or hit Reset.</p>
+
+      <label class="field-label" for="widthInput">Max width (px)</label>
+      <input type="text" id="widthInput" inputmode="numeric" value="940" />
+
+      <div class="btn-row">
+        <button id="applyWidthBtn" class="btn btn-primary">Apply</button>
+        <button id="resetWidthBtn" class="btn btn-ghost">Reset</button>
+      </div>
+      <div id="widthStatus" class="status"></div>
+    </section>
+
+<section class="pane" id="pane-links">
+  <header>
+    <div class="logo">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#12141A" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1"/><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/></svg>
+    </div>
+    <div class="title">
+      <h1>Link Shower</h1>
+      <p>See where a link goes before you click</p>
+    </div>
+  </header>
+
+  <label class="opt"><input type="checkbox" id="enabled"> Enable Link Shower</label><section class="count">
+    <div id="total" class="num">–</div>
+    <div>
+      <div class="big">links on this page</div>
+      <div id="split" class="small">&nbsp;</div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Trigger key</h2>
+    <button id="key" class="keybtn">Shift</button>
+  </section>
+
+  <section>
+    <h2>How it works</h2>
+    <div class="seg" id="mode">
+      <button data-mode="hold">Hold</button>
+      <button data-mode="tap">Tap</button>
+      <button data-mode="always">Always</button>
+    </div>
+  </section>
+
+  <section>
+    <h2>Preview style</h2>
+    <div class="seg" id="pstyle">
+      <button data-ps="auto">Auto</button>
+      <button data-ps="page">Page</button>
+      <button data-ps="card">Card</button>
+    </div>
+  </section>
+
+  <section>
+    <h2>Popup accent color</h2>
+    <div class="swatches" id="swatches">
+      <button data-color="#FFD93D" style="background:#FFD93D" aria-label="Yellow"></button>
+      <button data-color="#5EEAB4" style="background:#5EEAB4" aria-label="Mint"></button>
+      <button data-color="#5EB8FF" style="background:#5EB8FF" aria-label="Sky"></button>
+      <button data-color="#FF8A7A" style="background:#FF8A7A" aria-label="Coral"></button>
+      <button data-color="#B79BFF" style="background:#B79BFF" aria-label="Violet"></button>
+    </div>
+  </section>
+
+  <label class="opt"><input type="checkbox" id="prev"> Show page preview</label>
+  <label class="opt"><input type="checkbox" id="ext"> Only external links</label>
+
+  <footer>
+    <span id="hint"></span>
+  </footer>
+  <p class="lede">Previews contact the destination site. Translation sends selected text to Google Translate.</p></section>
+  </main>
+
+  <footer>Toolbelt — Translate · Delete · Items · Source · Width · Links.</footer>
+
+  <script src="popup.js"></script><script src="link-popup.js"></script>
+</body>
+</html>

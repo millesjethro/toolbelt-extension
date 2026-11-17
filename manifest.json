@@ -1,0 +1,92 @@
+{
+  "manifest_version": 3,
+  "name": "Toolbelt \u2014 Translate, Delete, Items, Source, Width & Links",
+  "version": "1.1.0",
+  "description": "Translate and edit pages, remove elements, count items, copy source, adjust width, and inspect links with Link Shower.",
+  "permissions": [
+    "activeTab",
+    "storage",
+    "scripting",
+    "downloads",
+    "declarativeNetRequest"
+  ],
+  "host_permissions": [
+    "<all_urls>"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "icons": {
+    "16": "icons/icon16.png",
+    "32": "icons/icon32.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+  "action": {
+    "default_title": "Toolbelt",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "32": "icons/icon32.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    },
+    "default_popup": "popup.html"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "<all_urls>"
+      ],
+      "js": [
+        "content.js"
+      ],
+      "run_at": "document_idle"
+    },
+    {
+      "matches": [
+        "<all_urls>"
+      ],
+      "js": [
+        "link-content.js"
+      ],
+      "run_at": "document_idle",
+      "all_frames": true
+    }
+  ],
+  "commands": {
+    "backup-source": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+Z"
+      },
+      "description": "Copy page source to clipboard"
+    },
+    "save-source-file": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+Q"
+      },
+      "description": "Save page source as .txt file"
+    },
+    "toggle-delete-single": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+D"
+      },
+      "description": "Toggle Single Delete mode"
+    },
+    "scan-items": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+S"
+      },
+      "description": "Scan page for Pinterest/Facebook items"
+    }
+  },
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "preview.html"
+      ],
+      "matches": [
+        "<all_urls>"
+      ]
+    }
+  ]
+}
